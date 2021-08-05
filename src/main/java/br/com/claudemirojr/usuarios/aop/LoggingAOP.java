@@ -24,8 +24,6 @@ public class LoggingAOP {
 	@Value("${spring.application.name}")
 	private String servico;
 	
-	
-	
 	@Autowired
 	private Security security;
 	
@@ -61,10 +59,7 @@ public class LoggingAOP {
 		//log.info( logPesquisa.toString() );
 
 		return object;
-
 	}
-	
-	
 	
 	private String getUsuarioLogado() {
 		return security.getUsuarioLogado();
