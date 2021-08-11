@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -40,7 +42,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 	@Autowired
 	private Security security;
-
+	
 	private UsuarioResponseDto convertToUsuarioResponseDto(Usuario entity) {
 		return DozerConverter.parseObject(entity, UsuarioResponseDto.class);
 	}
@@ -61,6 +63,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 	@Override
 	@Transactional(readOnly = false)
+	@CacheEvict(value = "usuarioCache", key = "#id")
 	public UsuarioResponseDto atualizar(Long id, UsuarioAtualizarDto usuarioAtualizarDto) {
 		var entity = usuarioRepository.findById(id).orElseThrow(
 				() -> new ResourceNotFoundException(String.format("Usuário não encontrado para id %d", id)));
@@ -75,6 +78,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 	@Override
 	@Transactional(readOnly = false)
+	@CacheEvict(value = "usuarioCache")
 	public void delete(Long id) {
 		var entity = usuarioRepository.findById(id).orElseThrow(
 				() -> new ResourceNotFoundException(String.format("Usuário não encontrado para id %d", id)));
@@ -114,6 +118,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 	@Override
 	@Transactional(readOnly = true)
+	@Cacheable(value = "usuarioCache")
 	public UsuarioResponseDto findById(Long id) {
 		var entity = usuarioRepository.findById(id).orElseThrow(
 				() -> new ResourceNotFoundException(String.format("Usuário não encontrado para id %d", id)));
@@ -123,6 +128,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
 	@Override
 	@Transactional(readOnly = true)
+	@Cacheable(value = "usuarioCache")
 	public UsuarioFullResponseDto findByUsername(String username) {
 		var entity = usuarioRepository.findByUsername(username).orElseThrow(() -> new ResourceNotFoundException(
 				String.format("Usuário não encontrado para username %s", username)));

@@ -12,26 +12,23 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.com.claudemirojr.usuarios.clients.ILogPesquisaFeign;
 import br.com.claudemirojr.usuarios.config.Security;
 import br.com.claudemirojr.usuarios.dto.LogPesquisaDto;
+import br.com.claudemirojr.usuarios.rabbitmq.sender.LogPesquisaSender;
 
 @Aspect
 @Component
 public class LoggingAOP {
 	final static Logger log = LoggerFactory.getLogger(LoggingAOP.class);
-	
+
 	@Value("${spring.application.name}")
 	private String servico;
-	
-	
-	
+
 	@Autowired
 	private Security security;
-	
+
 	@Autowired
-	private ILogPesquisaFeign logPesquisaFeign;
-	
+	private LogPesquisaSender logPesquisaSender;
 
 	@Pointcut(value = "execution(* br.com.claudemirojr.usuarios.controller.*.findBy*(..) )")
 	public void myPointcut() {
@@ -50,22 +47,21 @@ public class LoggingAOP {
 		Object object = pjp.proceed();
 
 		String retorno = mapper.writeValueAsString(object);
-		
-		String[] result = className.split("\\.");
-		
 
-		LogPesquisaDto logPesquisaDto = new LogPesquisaDto(this.servico, this.getUsuarioLogado(), result[result.length - 1], methodName, argumento, retorno);
-		logPesquisaFeign.create(logPesquisaDto);
-		
-		//LogPesquisa logPesquisa = new LogPesquisa(this.getUsuarioLogado(), className, methodName, argumento, retorno);
-		//log.info( logPesquisa.toString() );
+		String[] result = className.split("\\.");
+
+		LogPesquisaDto logPesquisaDto = new LogPesquisaDto(
+				this.servico, 
+				this.getUsuarioLogado(),
+				result[result.length - 1], 
+				methodName, 
+				argumento, 
+				retorno);
+		logPesquisaSender.send(logPesquisaDto);
 
 		return object;
-
 	}
-	
-	
-	
+
 	private String getUsuarioLogado() {
 		return security.getUsuarioLogado();
 	}

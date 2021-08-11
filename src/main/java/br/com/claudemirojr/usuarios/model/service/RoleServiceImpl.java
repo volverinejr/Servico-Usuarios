@@ -1,6 +1,8 @@
 package br.com.claudemirojr.usuarios.model.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,7 @@ public class RoleServiceImpl implements RoleService {
 
 	@Override
 	@Transactional(readOnly = false)
+	@CacheEvict(value = "roleCache", key = "#id")
 	public RoleResponseDto atualizar(Long id, RoleDto roleAtualizarDto) {
 		var entity = roleRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException(String.format("Role não encontrado para id %d", id)));
@@ -49,6 +52,7 @@ public class RoleServiceImpl implements RoleService {
 
 	@Override
 	@Transactional(readOnly = false)
+	@CacheEvict(value = "roleCache")
 	public void delete(Long id) {
 		var entity = roleRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException(String.format("Role não encontrado para id %d", id)));
@@ -58,6 +62,7 @@ public class RoleServiceImpl implements RoleService {
 
 	@Override
 	@Transactional(readOnly = true)
+	@Cacheable(value = "roleCache")
 	public Page<RoleResponseDto> findAll(ParamsRequestModel prm) {
 		Pageable pageable = prm.toSpringPageRequest();
 
@@ -88,6 +93,7 @@ public class RoleServiceImpl implements RoleService {
 
 	@Override
 	@Transactional(readOnly = true)
+	@Cacheable(value = "roleCache")
 	public RoleResponseDto findById(Long id) {
 		var entity = roleRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException(String.format("Role não encontrado para id %d", id)));
